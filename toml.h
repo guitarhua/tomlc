@@ -4,7 +4,7 @@
 struct toml_val {
 	char *key; /* UTF-8 string, NULL if is an array element */
 
-	enum TOML_TYPE { /* TOML_NULL used only during parsing */
+	enum toml_type { /* TOML_NULL used only during parsing */
 			 TOML_NULL,
 			 TOML_TABLE,
 			 TOML_ARRAY,
@@ -18,7 +18,7 @@ struct toml_val {
 	} type;
 
 	union {
-		long long int64;
+		long int64; /* FIXME: C89 doesn't have long long */
 		double float64;
 		char *string; /* UTF-8 string */
 		int boolean;
@@ -34,8 +34,7 @@ struct toml_val {
 			int hour, min, sec, usec;
 		} time;
 		struct {
-			struct char **
-				keys; /* pointers to vals[i].key, NULL if empty table*/
+			char **keys; /* pointers to vals[i].key, NULL if empty table*/
 			struct toml_val **
 				vals; /* list of subelts for table, NULL if empty table */
 			size_t len; /* length of keys and vals, 0 if empty table */
@@ -68,9 +67,9 @@ struct toml_val *toml_parse_file(FILE *fp, char *err, size_t err_len,
  * falloc and ffree must accept NULL input and do nothing (same as free(3))
  * defaults to malloc(3) and free(3) if they are NULL
  */
-struct toml_val *toml_parse_file(char *str, size_t len, char *err,
-				 size_t err_len, void *(*falloc)(size_t size),
-				 void (*ffree)(void *ptr));
+struct toml_val *toml_parse_string(char *str, size_t len, char *err,
+				   size_t err_len, void *(*falloc)(size_t size),
+				   void (*ffree)(void *ptr));
 
 /*
  * recursively free the toml_val if valid, do nothing if NULL
