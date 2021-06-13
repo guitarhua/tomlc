@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 /*
  * all elements of the TOML, including itself, are represented as a toml_elt
  * all sub-table and sub-array elts are owned by their parent and should not
@@ -87,7 +86,7 @@ struct toml_val *
 toml_parse_file(char *str, size_t len, char *err, size_t err_len,
 		void *(*falloc)(size_t size), void (*ffree)(void *ptr))
 {
-
+	return NULL;
 }
 
 

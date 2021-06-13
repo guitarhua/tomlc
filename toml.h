@@ -1,13 +1,8 @@
 #ifndef TOML_H
 #define TOML_H
 
-/*
- * all elements of the TOML, including itself, are represented as a toml_elt
- * all sub-table and sub-array elts are owned by their parent and should not
- * be directly freed
- */
 struct toml_val {
-	char *key; /* UTF-8 string */
+	char *key; /* UTF-8 string, NULL if is an array element */
 
 	enum TOML_TYPE { /* TOML_NULL used only during parsing */
 		TOML_NULL, TOML_TABLE, TOML_ARRAY, TOML_INT, TOML_FLOAT,
@@ -31,13 +26,13 @@ struct toml_val {
 			int hour, min, sec, usec;
 		} time;
 		struct {
-			struct char **keys; /* pointers to vals[i].key */
-			struct toml_val *vals; /* list of subelts for a table */
-			size_t len;
+			struct char **keys; /* pointers to vals[i].key, NULL if empty table*/
+			struct toml_val **vals; /* list of subelts for table, NULL if empty table */
+			size_t len; /* length of keys and vals, 0 if empty table */
 		} table;
 		struct {
-			struct toml_val *vals; /* list of subelts for an array */
-			size_t len;
+			struct toml_val **vals; /* list of subelts for array, NULL if empty array */
+			size_t len; /* length of vals, 0 if empty table */
 		} array;
 	} u;
 };
@@ -47,21 +42,23 @@ struct toml_val {
  * returns NULL and writes to err[err_len] on failure
  * allocates memory using falloc and ffree if they are non-NULL
  * uses ffree to free any allocated memory if parsing fails
+ * falloc and ffree must accept NULL input and do nothing (same as free(3))
  * defaults to malloc(3) and free(3) if they are NULL
  */
 struct toml_val *toml_parse_file(FILE *fp, char *err, size_t err_len,
-		void *(*falloc)(size_t size), void (*free)(void *ptr));
+		void *(*falloc)(size_t size), void (*ffree)(void *ptr));
 
 /*
  * parses and returns a TOML representation as a struct toml_val from a char[]
  * returns NULL and writes to err[err_len] on failure
  * allocates memory using falloc and ffree if they are non-NULL
  * uses ffree to free any allocated memory if parsing fails
+ * falloc and ffree must accept NULL input and do nothing (same as free(3))
  * defaults to malloc(3) and free(3) if they are NULL
  */
 struct toml_val *toml_parse_file(char *str, size_t len, char *err,
 		size_t err_len, void *(*falloc)(size_t size),
-		void (*free)(void *ptr));
+		void (*ffree)(void *ptr));
 
 
 /*
